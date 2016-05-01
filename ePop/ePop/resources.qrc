@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/ePop" >
+        <file>icon.png</file>
+    </qresource>
+</RCC>
