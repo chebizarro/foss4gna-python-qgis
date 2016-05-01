@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/plugins/whereami" >
+        <file>whereami_icon.png</file>
+    </qresource>
+</RCC>

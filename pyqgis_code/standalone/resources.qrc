@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/ourapp" >
+        <file alias="zoomin_icon">resources/mActionZoomIn.png</file>
+    </qresource>
+</RCC>
