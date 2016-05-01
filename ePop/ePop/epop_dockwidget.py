@@ -28,6 +28,10 @@ from PyQt4 import QtGui, uic
 from PyQt4 import QtGui, QtCore
 from PyQt4.QtCore import *
 
+from qgis.gui import QgsMessageBar
+
+import processing
+
 FORM_CLASS, _ = uic.loadUiType(os.path.join(
     os.path.dirname(__file__), 'epop_dockwidget_base.ui'))
 
@@ -36,7 +40,7 @@ class ePopDockWidget(QtGui.QDockWidget, FORM_CLASS):
 
     closingPlugin = pyqtSignal()
 
-    def __init__(self, iface=None, parent=None):
+    def __init__(self, iface, parent=None):
         """Constructor."""
         super(ePopDockWidget, self).__init__(parent)
         # Set up the user interface from Designer.
@@ -47,11 +51,36 @@ class ePopDockWidget(QtGui.QDockWidget, FORM_CLASS):
         self.setupUi(self)
 	self.iface = iface
 	#QObject.connect(self.pushButton, SIGNAL("clicked()"), self.zoom)
-	self.pushButton.clicked.connect(self.zoom)
+	self.addGridButton.clicked.connect(self.addGrid)
 
     def closeEvent(self, event):
         self.closingPlugin.emit()
         event.accept()
 
-    def zoom(self):
-	self.iface.zoomFull()
+    def addGrid(self):
+	layer = self.iface.activeLayer()
+	if layer is None:
+		self.iface.messageBar().pushMessage("Error",
+			"You must select a feature",
+			level=QgsMessageBar.CRITICAL,
+			duration=3)
+		return
+	
+	if len(layer.selectedFeatures()) < 1:
+		self.iface.messageBar().pushMessage("Error",
+			"You must select a feature",
+			level=QgsMessageBar.CRITICAL,
+			duration=3)
+	elif len(layer.selectedFeatures()) > 1:
+		self.iface.messageBar().pushMessage("Error",
+			"You must select only one feature",
+			level=QgsMessageBar.CRITICAL,
+			duration=3)
+	else:
+		feature = layer.selectedFeatures()[0]
+		bbox = feature.geometry().boundingBox()
+		extent = "%d,%d,%d,%d" % (bbox.xMinimum(), bbox.xMaximum(),
+			bbox.yMinimum(), bbox.yMaximum())
+		
+		processing.runalg('qgis:creategrid', 1, extent,
+			0.00025, 0.00025,'EPSG:4326','/tmp/tmp.shp')
